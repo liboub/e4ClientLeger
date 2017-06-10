@@ -1,14 +1,22 @@
 <?php
+session_start();
+if (empty($_SESSION['idStagiaire'])) {
+    header('Location: index.php');
+    exit;
+}
 require 'CControleurTuteur.php';
 $tuteur = new CControleurTuteur;
-$donnees = array(
-    "nom"=>$_POST['nom'],
-    "prenom"=>$_POST['prenom'],
-    "mail"=>$_POST['mail'],
-   "tel"=>$_POST['tel'],
-   "idEntreprise"=>$_COOKIE['idEntreprise']);
-$idTuteur=$tuteur->ajouterTuteur($donnees);
-
+if (isset($_POST['nom'],$_POST['prenom'],$_POST['mail'],$_POST['tel'],$_COOKIE['idEntreprise'])) {
+  $donnees = array(
+      "nom"=>$_POST['nom'],
+      "prenom"=>$_POST['prenom'],
+      "mail"=>$_POST['mail'],
+     "tel"=>$_POST['tel'],
+     "idEntreprise"=>$_COOKIE['idEntreprise']);
+  $idTuteur=$tuteur->ajouterTuteur($donnees);
+}
+$idPeriode = $_COOKIE['idPeriode'].
+$idEntreprise = $_COOKIE['idEntreprise'];
         require_once 'CControleurPeriodeStage.php';
         $cControleurPeriodeStage = new CControleurPeriodeStage();
 
@@ -24,7 +32,7 @@ $idTuteur=$tuteur->ajouterTuteur($donnees);
         require_once 'CControleurTuteur.php';
         $cControleurTuteur=new CControleurTuteur();
 
-$idPeriode=1;//période recupérée en GET
+
 
 $periode=$cControleurPeriodeStage->unePeriode($idPeriode);
 
@@ -56,16 +64,85 @@ $tuteur=$cControleurTuteur->unTuteur($periode->getIdTuteur());
     <![endif]-->
   </head>
   <body>
-    <div >
-    <h1>bienvenue</h1>
+  <div class="container">
+    <h2>recapitulatif</h2>
+
+    <section class="row">
+        <div class="col-md-12 date">Date</div>
+        <?php
+        echo 'date de debut : '.$periode->getDateDebut().'<br>';
+        echo 'date de debut : '.$periode->getDateFin().'<br>';
 
 
+         ?>
+    </section>
+    <section class="row">
+        <div class="col-md-5">
+            <section class="row">
+                <div class="col-md-12 cadre">Stagiaire</div>
+                <div class="col-md-10 col-lg-offset-2">
+                <?php
+                echo 'nom : '.$stagiaire->getNom().'<br>';
+                echo 'prenom : '.$stagiaire->getPrenom().'<br>';
+                echo 'mail : '.$stagiaire->getMail().'<br>';
+                echo 'telephone : '.$stagiaire->getTel().'<br>';
 
+                 ?>
+               </div>
+            </section>
+            <section class="row">
+                <div class="col-md-12 cadre">Tuteur</div>
+                <div class="col-md-10 col-lg-offset-2">
+                <?php
+                echo 'nom : '.$tuteur->getNom().'<br>';
+                echo 'prenom : '.$tuteur->getPrenom().'<br>';
+                echo 'mail : '.$tuteur->getMail().'<br>';
+                echo 'telephone : '.$tuteur->getTel().'<br>';
+
+                 ?>
+               </div>
+            </section>
+        </div>
+
+
+        <div class="col-md-7">
+            <section class="row">
+                <div class="col-md-12 cadre">Entreprise</div>
+                <?php
+                echo 'nom : '.$entreprise->getNom().'<br>';
+                echo 'adresse  : '.$entreprise->getAdnum().'   '.$entreprise->getAdrue();
+                echo 'ville : '.$entreprise->getAdville().'<br>';
+                echo 'code postal : '.$entreprise->getAdcp().'<br>';
+                echo 'telephone : '.$entreprise->getTel().'<br>';
+                echo 'mail  : '.$entreprise->getMail().'   '.$entreprise->getAdrue().'<br>';
+                echo 'siret : '.$entreprise->getSiret().'<br>';
+                echo 'ape : '.$entreprise->getApe().'<br>';
+
+                 ?>
+            </section>
+            <section class="row">
+                <div class="col-md-12 cadre">Poste</div>
+                <?php
+                echo 'poste : '.$periode->getPoste().'<br>';
+
+
+                 ?>
+            </section>
+        </div>
+    </section>
+    <section class="row">
+        <div class="col-md-12 activite">Activité</div>
+        <?php
+        echo ' '.$periode->getActivites().'<br>';
+
+         ?>
+    </section>
+</div>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
     <script src="js/bootstrap.min.js"></script>
-  
+
   </body>
 </html>

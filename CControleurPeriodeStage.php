@@ -25,6 +25,18 @@ class CControleurPeriodeStage {
 
                return $bdd->lastInsertId();
     }
+    public function modifierPeriode($donnees,$idPeriode)
+    {
+      require_once 'CBdd.php';
+          $cBdd= new CBdd();
+          $bdd=$cBdd->getConnection();
+          $req = $bdd->prepare('UPDATE periode SET dateDebut =:dateDebut, dateFin = :dateFin , poste=:poste, activite=:activite WHERE id = '.$idPeriode.'');
+          $req->execute(array(
+              'dateDebut' => $donnees['dateDebut'],
+              'dateFin' => $donnees['dateFin'],
+              'poste' => $donnees['poste'],
+              'activite' => $donnees['activite'] ));
+    }
 
     public function assignerEntreprise($idPeriode, $idEntreprise) {
         require_once 'CBdd.php';
@@ -32,6 +44,7 @@ class CControleurPeriodeStage {
             $bdd=$cBdd->getConnection();
         $q = $bdd->prepare('UPDATE periode SET idEntreprise="'.$idEntreprise.'" WHERE id='.$idPeriode.' ');
         $q->execute();
+        header('location: ihmTuteur.php');
     }
 
     public function assignerTuteur($idPeriode, $idTuteur) {
@@ -40,6 +53,7 @@ class CControleurPeriodeStage {
             $bdd=$cBdd->getConnection();
         $q = $bdd->prepare('UPDATE periode SET idTuteur="'.$idTuteur.'" WHERE id='.$idPeriode.' ');
         $q->execute();
+        header('location: ihmRecap.php');
     }
 
     public function unePeriode($idPeriode){
@@ -53,18 +67,33 @@ class CControleurPeriodeStage {
        require_once 'CPeriodeStage.php';
        return new CPeriodeStage($donnees);
     }
+    // ON RECUPERE toutes les periodes de stage du stagiaire
     public function listePeriodeStagiaire($idStagiaire){
        require_once 'CBdd.php';
             $cBdd= new CBdd();
             $bdd=$cBdd->getConnection();
 
+            // on recupere les periodes des stage du stagiaire
+       $q = $bdd->query('SELECT id ,dateDebut , dateFin , idTuteur , idEntreprise , idStagiaire FROM periode WHERE Periode.idStagiaire = '.$idStagiaire.' ' );
+        $donneesPeriode = $q->fetchALL(PDO::FETCH_NUM);
+        // on recupere les entreprises du stagiaire
+      foreach ($donneesPeriode as  $value) {
+        $qEntreprise = $bdd->query('SELECT nom FROM entreprise WHERE id = '.$value[4].'' );
+       $donneesEntreprise[] = $qEntreprise->fetch(PDO::FETCH_NUM);
+      }
+      // on recupere les tuteur du stagiaire
+      foreach ($donneesPeriode as  $value) {
+        $qTuteur = $bdd->query('SELECT nom FROM tuteur WHERE id = '.$value[3].'' );
+       $donneesTuteur[] = $qTuteur->fetch(PDO::FETCH_NUM);
 
-       $q = $bdd->query('SELECT periode.id,periode.dateDebut,periode.dateFin,,stagiaire.prenom,entreprise.nomEnt,entreprise,tuteur.nomTuteur
-         FROM periode , entreprise , tuteur , stagiaire
-         WHERE Periode.idEntreprise = entreprise.id and Periode.idStagiaire = stagiaire.id and Periode.idTuteur = tuteur.id and Periode.idStagiaire =  '.$idStagiaire.' ' );
-        $donnees = $q->fetchALL(PDO::FETCH_OBJ);
-        return $donnees  ;
+      }
 
+// on fusionne les trois tableaux le nom de l'entreprise est 5 et le tuteur est 6
+$tailleDonneesPeriode = count($donneesPeriode);
+for ($i=0; $i <$tailleDonneesPeriode ; $i++) {
+  array_push($donneesPeriode[$i], $donneesEntreprise[$i][0],$donneesTuteur[$i][0]);
+}
+          return $donneesPeriode;
 
     }
 }

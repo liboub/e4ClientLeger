@@ -4,10 +4,14 @@ if (empty($_SESSION['idStagiaire'])) {
     header('Location: index.php');
     exit;
 }
+// fichier requis
 require 'CControleurEntreprise.php';
 require 'CControleurTuteur.php';
+require_once 'CControleurPeriodeStage.php';
+//on instancie les objets
 $entreprise = new CControleurEntreprise;
 $tuteur = new CControleurTuteur;
+$cControleurPeriodeStage = new CControleurPeriodeStage;
 // si une entreprise a ete rajouter precedament , on effectue son enregistrement
 if (isset($_POST['nom'] , $_POST['adnum'] , $_POST['adrue'] , $_POST['adville'] , $_POST['adcp'] ,
 $_POST['tel'] , $_POST['mail'] , $_POST['siret'] , $_POST['ape'])) {
@@ -21,13 +25,18 @@ $_POST['tel'] , $_POST['mail'] , $_POST['siret'] , $_POST['ape'])) {
       "mail"=>$_POST['mail'],
       "siret"=>$_POST['siret'],
       "ape"=>$_POST['ape']);
-      $idEntreprise = $entreprise->ajouterEntreprise($donnees);
-      setcookie("idEntreprise",$idEntreprise,time()+3600);
 }
-$idEntreprise = $_COOKIE['idEntreprise'];
-// on recupere la lise des tuteur par entreprise
-$listeTuteur = $tuteur->listeTuteur($idEntreprise);
-
+//on recupere l id de l'entreprise que le formulaire de ihmModifEntreprise a envoyer
+$idEntreprise = $_GET['idEntreprise'];
+// on modifie les donnees de l'entreprise
+$modifierEntreprise = $entreprise->modifierEntreprise($donnees,$idEntreprise);
+// on recupere l'idPeriode
+$idPeriode = 31 ;
+//     $idPeriode =  $_COOKIE['idPeriode'];
+// on va chercher les donnees de la periode
+$periode=$cControleurPeriodeStage->unePeriode($idPeriode);
+// on va chercher les infos sur le tuteur
+$unTuteur=$tuteur->unTuteur($periode->getIdTuteur());
  ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -54,52 +63,25 @@ $listeTuteur = $tuteur->listeTuteur($idEntreprise);
 
     <div class = "container" >
       <div class = "row">
-
-        <table id="tableau" class="table table-striped table-bordered" width="100%" cellspacing="0">
-           <thead>
-               <tr>
-
-                       <th>nom</th>
-                       <th>prenom </th>
-
-
-               </tr>
-           </thead>
-
-           <tbody>
-    <?php
-             foreach ($listeTuteur as  $value) {
-               ?>
-                   <tr>
-                          <td><a href="assignerTuteur.php?id=<?php echo $value->getId();?>"><?php echo $value->getNom() ;?></a></td>
-                          <td><a href="assignerTuteur.php?id=<?php echo $value->getId();?>"><?php echo $value->getPrenom();?></a></td>
-
-                   </tr>
-    <?php
-    }
-    ?>
-           </tbody>
-       </table>
-
         <div class="col-md-8">
         <h3> tuteur </h3>
         <form  method="Post" action="ihmRecap.php">
 
      <div class="form-group">
        <label for="dateDebut">nom du tuteur :</label>
-       <input type="text" class="form-control"  name="nom" id="nom">
+       <input type="text" class="form-control"  name="nom" id="nom" value="<?php echo $unTuteur->getNom(); ?>">
      </div>
      <div class="form-group">
        <label for="dateFin">prenom du tuteur :</label>
-       <input type="text" class="form-control" name="prenom" id="prenom">
+       <input type="text" class="form-control" name="prenom" id="prenom" value="<?php echo $unTuteur->getPrenom(); ?>">
      </div>
      <div class="form-group">
        <label for="dateFin">email du tuteur :</label>
-       <input type="text" class="form-control" name="mail" id="mail">
+       <input type="text" class="form-control" name="mail" id="mail" value="<?php echo $unTuteur->getMail(); ?>">
      </div>
      <div class="form-group">
        <label for="dateFin">telephone tuteur :</label>
-       <input type="text" class="form-control" name="tel" id="tel">
+       <input type="text" class="form-control" name="tel" id="tel" value="<?php echo $unTuteur->getTel(); ?>">
      </div>
        <button type="submit" class="btn btn-default">envoyer</button>
          </form>
